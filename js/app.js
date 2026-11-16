@@ -25,7 +25,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   // ---------- Estado de la pantalla ----------
-  const ui = { pestanaDinero: "este", formGasto: false, formCita: null, editObjetivo: null, editNombre: false, editFoco: false };
+  const ui = { pestanaDinero: "este", formGasto: false, formIngreso: false, formCita: null, editObjetivo: null, editNombre: false, editFoco: false };
   const EJ = PV.modoEjemplo;
   let D; // datos combinados (ejemplo + lo tuyo)
   let hoy, kHoy;
@@ -102,6 +102,20 @@
     const porCat = {};
     lista.forEach((g) => (porCat[g.cat] = (porCat[g.cat] || 0) + g.importe));
     return { anio, mes, diasMes, hoyDia, lista, total, acumulado, prevision, porCat, mesCompleto, presupuesto: C.dinero.presupuesto, quedanDias: diasMes - hoyDia + 1 };
+  }
+
+  // Ingresos: de dónde viene el dinero. Tu lista va en tu configuración (dinero.fuentes); si no, esta.
+  const FUENTES = () => (C.dinero.fuentes && C.dinero.fuentes.length ? C.dinero.fuentes : [
+    { id: "trabajo", nombre: "Trabajo", icono: "💼" },
+    { id: "regalo", nombre: "Regalo o propina", icono: "🎁" },
+    { id: "otro", nombre: "Otro", icono: "➕" },
+  ]);
+  const nomFuente = (id) => { const f = FUENTES().find((x) => x.id === id); return f ? `${f.icono} ${f.nombre}` : "➕ Otro"; };
+  const objetivoAhorro = () => C.objetivos.find((o) => o.tipo === "dinero");
+  function ingresosDelMes(cual) {
+    const ref = cual === "este" ? hoy : new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+    const lista = D.ingresos.filter((g) => { const d = F.desdeClave(g.fecha); return d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth(); });
+    return { lista, total: lista.reduce((s, g) => s + g.importe, 0) };
   }
 
   // ---------- Barra lateral ----------
@@ -322,6 +336,8 @@
   // ---------- 6. Dinero ----------
   function pintarDinero() {
     const r = resumenDinero(ui.pestanaDinero);
+    const ing = ingresosDelMes(ui.pestanaDinero);
+    const balance = ing.total - r.total;
     const queda = r.presupuesto - r.total;
     const pasado = queda < 0;
     const nombreMes = cap(new Date(r.anio, r.mes, 1).toLocaleDateString(C.locale, { month: "long" }));
@@ -347,7 +363,8 @@
       if (f.dia <= hoy.getDate()) d = new Date(hoy.getFullYear(), hoy.getMonth() + 1, f.dia);
       return { ...f, d };
     }).sort((a, b) => a.d - b.d).slice(0, 5);
-    const ultimos = r.lista.slice().sort((a, b) => b.fecha.localeCompare(a.fecha) || (b.id > a.id ? 1 : -1)).slice(0, 6);
+    const ultimos = r.lista.map((g) => ({ ...g, tipo: "gasto" })).concat(ing.lista.map((g) => ({ ...g, tipo: "ingreso" })))
+      .sort((a, b) => b.fecha.localeCompare(a.fecha) || (b.id > a.id ? 1 : -1)).slice(0, 8);
     const nomCat = (id) => (C.dinero.categorias.find((c) => c.id === id) || { nombre: id }).nombre;
 
     const form = ui.formGasto ? `<form class="form-gasto" data-form="gasto">
@@ -357,26 +374,43 @@
         <input class="campo" name="fecha" type="date" value="${kHoy}" max="${kHoy}" required aria-label="Fecha">
         <div class="acciones-form"><button type="button" class="btn" data-acc="cancelar-gasto">Cancelar</button><button class="btn lleno">Guardar gasto</button></div>
       </form>` : "";
+    const oa = objetivoAhorro();
+    const formIng = ui.formIngreso ? `<form class="form-gasto form-ingreso" data-form="ingreso">
+        <input class="campo" name="importe" type="number" min="0.1" step="0.1" placeholder="S/ 0.00" required aria-label="Importe en soles">
+        <input class="campo" name="concepto" placeholder="¿De qué fue?" required aria-label="Concepto">
+        <select class="campo" name="fuente" aria-label="De dónde vino">${FUENTES().map((f) => `<option value="${esc(f.id)}">${esc(f.icono + " " + f.nombre)}</option>`).join("")}</select>
+        <input class="campo" name="fecha" type="date" value="${kHoy}" max="${kHoy}" required aria-label="Fecha">
+        ${oa ? `<label class="casilla-ahorro"><input type="checkbox" name="ahorro"> Guardar en mi ahorro <span class="suave">(${esc(oa.nombre)})</span></label>` : ""}
+        <div class="acciones-form"><button type="button" class="btn" data-acc="cancelar-ingreso">Cancelar</button><button class="btn verde-btn">Guardar ingreso</button></div>
+      </form>` : "";
 
     $("#dinero").innerHTML = `<div class="t-cab"><h2 class="t-tit"><span aria-hidden="true">💰</span>Dinero · ${nombreMes}</h2>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
           <div class="pestanas" role="tablist"><button type="button" role="tab" class="${ui.pestanaDinero === "este" ? "on" : ""}" aria-selected="${ui.pestanaDinero === "este"}" data-acc="pestana" data-p="este">Este mes</button><button type="button" role="tab" class="${ui.pestanaDinero === "pasado" ? "on" : ""}" aria-selected="${ui.pestanaDinero === "pasado"}" data-acc="pestana" data-p="pasado">Mes pasado</button></div>
+          <button type="button" class="btn verde-btn" data-acc="nuevo-ingreso">+ Ingreso</button>
           <button type="button" class="btn lleno" data-acc="nuevo-gasto">+ Gasto</button></div></div>
-      ${form}
+      ${form}${formIng}
       <div class="dinero-top">
         <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
           <p class="gastado ${pasado ? "rojo" : ""}">${fmt.dineroCorto(r.total)} <small>de ${fmt.dineroCorto(r.presupuesto)}</small></p>
           <p>${linea}</p>
           <div>${pastPrev}</div>
+          <div class="balance">
+            <div><small>Ingresos</small><b class="verde">+${fmt.dinero(ing.total)}</b></div>
+            <div><small>Gastos</small><b>−${fmt.dinero(r.total)}</b></div>
+            <div><small>Balance</small><b class="${balance < 0 ? "rojo" : balance > 0 ? "verde" : ""}">${balance < 0 ? "−" : balance > 0 ? "+" : ""}${fmt.dinero(Math.abs(balance))}</b></div>
+          </div>
           ${G.gastoAcumulado(r)}
         </div>
         <div><p class="sub">Por categoría</p><div class="cats">${cats}</div></div>
       </div>
       <div class="dinero-bajo">
         <div><p class="sub">Próximos cobros</p>${prox.length ? "" : `<p class="vacio">Sin gastos fijos todavía (alquiler, luz, internet…).</p>`}<ul class="lista">${prox.map((f) => `<li><div><b>${esc(f.concepto)}</b><small>${fmt.fechaCorta(f.d)} · ${esc(nomCat(f.cat))}</small></div><span class="imp">${fmt.dinero(f.importe)}</span></li>`).join("")}</ul></div>
-        <div><p class="sub">Últimos movimientos</p>${ultimos.length ? `<ul class="lista">${ultimos.map((g) => `<li><div style="min-width:0"><b>${esc(g.concepto)}</b><small>${fmt.fechaCorta(F.desdeClave(g.fecha))} · ${esc(nomCat(g.cat))}</small></div><span class="imp">−${fmt.dinero(g.importe)}<button type="button" class="borrar" data-acc="borrar-gasto" data-id="${esc(g.id)}" aria-label="Borrar ${esc(g.concepto)}">✕</button></span></li>`).join("")}</ul>` : `<p class="vacio">Sin movimientos este mes.</p>`}</div>
+        <div><p class="sub">Últimos movimientos</p>${ultimos.length ? `<ul class="lista">${ultimos.map((g) => g.tipo === "ingreso"
+          ? `<li class="ingreso"><div style="min-width:0"><b>${esc(g.concepto)}</b><small>${fmt.fechaCorta(F.desdeClave(g.fecha))} · ${esc(nomFuente(g.fuente))}${g.alAhorro ? " · 🐷 al ahorro" : ""}</small></div><span class="imp verde">+${fmt.dinero(g.importe)}<button type="button" class="borrar" data-acc="borrar-ingreso" data-id="${esc(g.id)}" aria-label="Borrar ${esc(g.concepto)}">✕</button></span></li>`
+          : `<li><div style="min-width:0"><b>${esc(g.concepto)}</b><small>${fmt.fechaCorta(F.desdeClave(g.fecha))} · ${esc(nomCat(g.cat))}</small></div><span class="imp">−${fmt.dinero(g.importe)}<button type="button" class="borrar" data-acc="borrar-gasto" data-id="${esc(g.id)}" aria-label="Borrar ${esc(g.concepto)}">✕</button></span></li>`).join("")}</ul>` : `<p class="vacio">Sin movimientos este mes.</p>`}</div>
       </div>`;
-    if (ui.formGasto) { const i = $('[name="importe"]'); if (i) i.focus(); }
+    if (ui.formGasto || ui.formIngreso) { const i = $('#dinero [name="importe"]'); if (i) i.focus(); }
   }
 
   // ---------- 7. Lo que dicen tus datos ----------
@@ -538,7 +572,7 @@
   PV.calc = {
     datos: () => D, hoy: () => hoy, kHoy: () => kHoy, esc,
     habitoHecho, racha, tuDia, resumenDinero, citasHoy, valorObjetivo, debidoObjetivo,
-    entrenoDe, libroActual, ahoraMin, aMin, lunesDe,
+    entrenoDe, libroActual, ahoraMin, aMin, lunesDe, ingresosDelMes, nomFuente,
   };
   function primeraVez() {
     document.querySelectorAll(".tarjeta").forEach((t, i) => (t.style.animationDelay = `${Math.min(i, 12) * 45}ms`));
@@ -596,7 +630,19 @@
       }
       case "objetivo-sino": { const o = C.objetivos.find((x) => x.id === id); const act = D.objetivos[id] === true || (D.objetivos[id] === undefined && o.hecho); A.cambiar((m) => { m.objetivos[id] = !act; }); break; }
       case "pestana": ui.pestanaDinero = b.dataset.p; pintarDinero(); return;
-      case "nuevo-gasto": ui.formGasto = !ui.formGasto; pintarDinero(); return;
+      case "nuevo-gasto": ui.formGasto = !ui.formGasto; ui.formIngreso = false; pintarDinero(); return;
+      case "nuevo-ingreso": ui.formIngreso = !ui.formIngreso; ui.formGasto = false; pintarDinero(); return;
+      case "cancelar-ingreso": ui.formIngreso = false; pintarDinero(); return;
+      case "borrar-ingreso": {
+        const g = D.ingresos.find((x) => x.id === id);
+        const oa = objetivoAhorro();
+        A.cambiar((m) => {
+          if (m.ingresos.some((x) => x.id === id)) m.ingresos = m.ingresos.filter((x) => x.id !== id); else m.borrados.push(id);
+          // Si se había sumado al ahorro, se resta.
+          if (g && g.alAhorro && oa) m.objetivos[oa.id] = Math.max(0, Math.round((Number(D.objetivos[oa.id] ?? 0) - g.importe) * 100) / 100);
+        });
+        avisar(`Borrado: ${g ? g.concepto : "ingreso"}`); break;
+      }
       case "cancelar-gasto": ui.formGasto = false; pintarDinero(); return;
       case "borrar-gasto": {
         const g = D.gastos.find((x) => x.id === id);
@@ -638,6 +684,17 @@
     if (f.dataset.form === "libro") {
       const paginas = Math.max(1, parseInt(v.paginas, 10) || 0);
       A.cambiar((m) => { m.libro = { titulo: v.titulo.trim(), autor: (v.autor || "").trim(), paginas, color: "terracota", ritmo: 20 }; m.libroPagina = 0; });
+    }
+    if (f.dataset.form === "ingreso") {
+      const importe = Math.round(parseFloat(String(v.importe).replace(",", ".")) * 100) / 100;
+      if (!(importe > 0)) return;
+      const oa = objetivoAhorro(), alAhorro = !!(v.ahorro && oa);
+      A.cambiar((m) => {
+        m.ingresos = m.ingresos || [];
+        m.ingresos.push({ id: `i-${Date.now()}`, fecha: v.fecha || kHoy, importe, concepto: v.concepto.trim(), fuente: v.fuente, alAhorro });
+        if (alAhorro) m.objetivos[oa.id] = Math.round((Number(D.objetivos[oa.id] ?? 0) + importe) * 100) / 100;
+      });
+      ui.formIngreso = false; avisar(`Ingreso guardado: ${fmt.dinero(importe)}${alAhorro ? " · sumado a tu ahorro" : ""}`);
     }
     if (f.dataset.form === "gasto") {
       const importe = Math.round(parseFloat(String(v.importe).replace(",", ".")) * 100) / 100;

@@ -167,6 +167,11 @@
       for (const p of din.pasadas) items.push(["💸", `Se ha pasado en <b>${esc(minus(p.cat.nombre))}</b>: ${fmt.dinero(p.g)} de ${fmt.dinero(p.cat.limite)}. Modere ese gasto.`]);
       items.push(["💰", `Le quedan <b>${fmt.dinero(Math.max(0, din.libre))}</b> libres este mes${din.fijosPend ? ", contando los cobros fijos que vienen" : ""}.`]);
     }
+    const ing = c.ingresosDelMes("este");
+    if (ing.total > 0) {
+      const bal = ing.total - din.r.total;
+      items.push(["💵", `Este mes ha ingresado <b>${fmt.dinero(ing.total)}</b>. Su balance es ${bal >= 0 ? `positivo: <b>+${fmt.dinero(bal)}</b>. Bien hecho` : `negativo: <b>−${fmt.dinero(-bal)}</b>. Gasta más de lo que gana`}, ${t}.`]);
+    }
 
     // Objetivos
     const atr = objetivosAtrasados(x);
@@ -209,6 +214,11 @@
     if (id === "dinero") {
       const din = dineroLibre(x), r = din.r;
       const l = [`Este mes lleva gastado <b>${fmt.dinero(r.total)}</b> de ${fmt.dinero(r.presupuesto)}.`];
+      const ing = c.ingresosDelMes("este");
+      if (ing.lista.length) {
+        const bal = ing.total - r.total;
+        l.push(`Ha ingresado <b>${fmt.dinero(ing.total)}</b> (${ing.lista.length} ingreso${ing.lista.length === 1 ? "" : "s"}). Balance del mes: <b class="${bal < 0 ? "rojo" : "verde"}">${bal < 0 ? "−" : "+"}${fmt.dinero(Math.abs(bal))}</b>.`);
+      } else l.push("Este mes aún no ha apuntado ingresos.");
       l.push(C.dinero.categorias.map((cat) => `${esc(cat.nombre)}: ${fmt.dinero(r.porCat[cat.id] || 0)} de ${fmt.dinero(cat.limite)}`).join(" · "));
       const prox = C.dinero.fijos.filter((f) => f.dia > hoy.getDate()).map((f) => `${esc(f.concepto)}, el día ${f.dia}, ${fmt.dinero(f.importe)}`);
       if (prox.length) l.push(`Próximos cobros este mes: ${lista(prox)}.`);
@@ -323,6 +333,10 @@
     if (C.dinero.fijos.length) dl(`Gastos fijos: ${C.dinero.fijos.map((f) => `${f.concepto}, día ${f.dia}, ${fmt.dinero(f.importe)}`).join("; ")}.`);
     const ultimos = r.lista.slice().sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 10);
     if (ultimos.length) { dl("Últimos gastos:"); ultimos.forEach((g) => dl(`- ${g.fecha}: ${g.concepto}, ${fmt.dinero(g.importe)}`)); }
+    const ing = c.ingresosDelMes("este");
+    dl(`Ingresos del mes: ${fmt.dinero(ing.total)}. Balance (ingresos menos gastos): ${fmt.dinero(ing.total - r.total)}. Los ingresos no aumentan mi presupuesto.`);
+    ing.lista.slice().sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 10)
+      .forEach((g) => dl(`- ${g.fecha}: ${g.concepto} (${c.nomFuente(g.fuente).replace(/^\S+\s/, "")}), +${fmt.dinero(g.importe)}${g.alAhorro ? ", guardado en mi ahorro" : ""}`));
     dl("");
 
     dl("SUEÑO, ENTRENO Y ÁNIMO (últimos 7 días)");

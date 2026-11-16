@@ -7,7 +7,7 @@
   const LLAVE = PV.modoEjemplo ? "panelDeVida.ejemplo" : "panelDeVida.v1";
   const LLAVE_PREFS = "panelDeVida.prefs";
 
-  const vacio = () => ({ dias: {}, marcas: {}, animo: {}, gastos: [], borrados: [], citas: {}, diario: [], tres: {}, objetivos: {}, libroPagina: null, libro: null, inicio: null });
+  const vacio = () => ({ dias: {}, marcas: {}, animo: {}, gastos: [], ingresos: [], borrados: [], citas: {}, diario: [], tres: {}, objetivos: {}, libroPagina: null, libro: null, inicio: null });
 
   let prefs = {};
   try { prefs = JSON.parse(localStorage.getItem(LLAVE_PREFS) || "{}") || {}; } catch (e) {}
@@ -44,6 +44,7 @@
     const diario = mios.diario.concat(base.diario.filter((e) => !fechasMias.has(e.fecha))).sort((a, b) => b.fecha.localeCompare(a.fecha));
     return {
       dias, marcas, gastos, diario,
+      ingresos: (base.ingresos || []).filter((g) => !borrados.has(g.id)).concat(mios.ingresos.filter((g) => !borrados.has(g.id))),
       animo: { ...base.animo, ...mios.animo },
       citas: { ...base.citas, ...mios.citas },
       tres: { ...base.tres, ...mios.tres },

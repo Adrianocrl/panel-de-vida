@@ -238,6 +238,16 @@ button { cursor: pointer; }
 .sub { font-size: 13px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--tinta-suave); margin-bottom: 4px; }
 .form-gasto { grid-template-columns: 110px minmax(0, 1fr) minmax(0, 1fr) 150px; align-items: center; }
 .form-gasto .acciones-form { grid-column: 1 / -1; }
+.form-ingreso { background: var(--verde-suave); }
+.casilla-ahorro { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.casilla-ahorro input { width: 18px; height: 18px; accent-color: var(--verde); }
+.btn.verde-btn { border-color: var(--verde); color: var(--verde); }
+.btn.verde-btn:hover { background: var(--verde); color: var(--tarjeta); }
+.form-ingreso .btn.verde-btn { background: var(--verde); color: var(--tarjeta); }
+.balance { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.balance div { background: var(--fondo); border-radius: 12px; padding: 8px 10px; min-width: 0; }
+.balance small { display: block; font-size: 12px; color: var(--tinta-suave); }
+.balance b { font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 700; white-space: nowrap; }
 
 /* 7. Lo que dicen tus datos */
 .frases { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
