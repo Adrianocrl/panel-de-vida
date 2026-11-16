@@ -1,0 +1,17 @@
+{
+  "name": "Panel de vida",
+  "short_name": "Panel de vida",
+  "description": "Mi día, mis hábitos, mis objetivos y mi dinero, con Jarvis.",
+  "lang": "es-PE",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3EEE5",
+  "theme_color": "#F3EEE5",
+  "icons": [
+    { "src": "iconos/icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

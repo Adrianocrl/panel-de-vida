@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es-PE">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Panel de vida</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Crect width='12' height='12' rx='3' fill='%23C45F38'/%3E%3Crect x='14' width='12' height='12' rx='3' fill='%233B7A55'/%3E%3Crect y='14' width='12' height='12' rx='3' fill='%233D6699'/%3E%3Crect x='14' y='14' width='12' height='12' rx='3' fill='%23B7832A'/%3E%3C/svg%3E">
+  <script>
+    // Tema: lo que elegiste la última vez; la primera vez, el del sistema.
+    (function () {
+      var t = null;
+      try { t = JSON.parse(localStorage.getItem("panelDeVida.prefs") || "{}").tema || null; } catch (e) {}
+      if (!t) t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "oscuro" : "claro";
+      document.documentElement.dataset.tema = t;
+    })();
+  </script>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#F3EEE5" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#17140F" media="(prefers-color-scheme: dark)">
+  <link rel="apple-touch-icon" href="iconos/icono-180.png">
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="lateral">
+      <div class="logo"><div class="logo-cuadros" aria-hidden="true"><i></i><i></i><i></i><i></i></div><span>Panel de vida</span></div>
+      <nav class="menu" aria-label="Apartados">
+        <a href="#hoy"><span>☀️</span>Hoy</a>
+        <a href="#jarvis"><span>🤵</span>Jarvis</a>
+        <a href="#habitos"><span>🔥</span>Hábitos</a>
+        <a href="#objetivos"><span>🎯</span>Objetivos</a>
+        <a href="#dinero"><span>💰</span>Dinero</a>
+        <a href="#salud"><span>💪</span>Salud</a>
+        <a href="#lectura"><span>📖</span>Lectura</a>
+        <a href="#diario"><span>✍️</span>Diario</a>
+      </nav>
+      <div class="lateral-pie">
+        <div class="ano" id="progreso-ano"></div>
+        <div class="yo" id="yo"></div>
+      </div>
+    </aside>
+
+    <main class="principal">
+      <div class="rejilla" id="rejilla">
+        <header class="cabecera" id="hoy"></header>
+        <div class="banner-ejemplo" id="banner"></div>
+
+        <section class="tarjeta c12 t-jarvis" id="jarvis" aria-label="Jarvis, su mayordomo"></section>
+
+        <section class="tarjeta c5 t-agenda" id="t-agenda"></section>
+        <section class="tarjeta c4 t-tres" id="t-tres"></section>
+        <section class="tarjeta c3 t-numeros" id="t-numeros"></section>
+
+        <section class="tarjeta c7 t-habitos" id="habitos"></section>
+        <section class="tarjeta c5 t-objetivos" id="objetivos"></section>
+
+        <section class="tarjeta c12 t-dinero" id="dinero"></section>
+
+        <section class="tarjeta c4 t-datos" id="t-datos"></section>
+        <section class="tarjeta c8 t-sueno" id="salud"></section>
+
+        <section class="tarjeta c4 t-animo" id="t-animo"></section>
+        <section class="tarjeta c4 t-libro" id="lectura"></section>
+        <section class="tarjeta c4 t-diario" id="diario"></section>
+
+        <section class="tarjeta c12 t-estante" id="t-estante"></section>
+
+        <footer class="pie">
+          <span id="pie-modo"></span>
+          <button type="button" data-acc="exportar">Exportar copia</button>
+          <button type="button" data-acc="importar">Importar copia</button>
+          <input type="file" id="archivo-copia" accept=".json,application/json" hidden>
+          <span>Tus datos se guardan solo en este navegador.</span>
+        </footer>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/datos.js"></script>
+  <script src="js/almacen.js"></script>
+  <script src="js/graficos.js"></script>
+  <script src="js/jarvis.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    // App instalable: solo cuando el panel está publicado (al abrirlo con doble clic no hace falta).
+    if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+      navigator.serviceWorker.register("sw.js").catch(function () {});
+    }
+  </script>
+</body>
+</html>
