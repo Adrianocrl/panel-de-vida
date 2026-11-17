@@ -258,6 +258,25 @@ button { cursor: pointer; }
 .frases li i { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; font-style: normal; }
 .frases b { font-weight: 700; }
 
+/* ===== Tu plan de hoy (ganar) ===== */
+.t-ganar .t-cab { flex-wrap: wrap; }
+.t-ganar .t-tit { white-space: nowrap; }
+.gn-cuerpo { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+.gn-tit { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+.gn-tit h3 { font-family: var(--f-titulo); font-size: 18px; font-weight: 600; line-height: 1.25; }
+.gn-ico { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font-size: 22px; background: var(--verde-suave); flex: none; }
+.gn-pasos { margin: 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 14.5px; line-height: 1.45; counter-reset: paso; }
+.gn-pasos label { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; cursor: pointer; align-items: start; }
+.gn-pasos input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--verde); }
+.gn-pasos input:checked + span { text-decoration: line-through; color: var(--tinta-suave); }
+.gn-lado { display: flex; flex-direction: column; gap: 12px; }
+.gn-seguro { background: var(--azul-suave); border-radius: 14px; padding: 10px 14px; }
+.gn-seguro small { font-size: 12.5px; color: var(--azul); font-weight: 600; display: block; }
+.gn-seguro p { font-size: 14px; margin-top: 2px; }
+.gn-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn.gn-lleno { background: var(--verde); color: var(--tarjeta); }
+.gn-lado > small { font-size: 12.5px; }
+
 /* ===== Jarvis ===== */
 .t-jarvis { border: 1px solid color-mix(in srgb, var(--ambar) 35%, transparent); background: linear-gradient(135deg, color-mix(in srgb, var(--ambar-suave) 55%, var(--tarjeta)), var(--tarjeta) 55%); }
 .jv-cab { display: flex; align-items: center; gap: 12px; }
@@ -360,7 +379,7 @@ button { cursor: pointer; }
   .t-numeros .numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .t-numeros .numeros.sin-pasos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .t-numeros .numeros.sin-pasos > :last-child { grid-column: span 2; }
-  .jv-cuerpo { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .jv-cuerpo, .gn-cuerpo { grid-template-columns: minmax(0, 1fr); gap: 14px; }
 }
 @media (max-width: 640px) {
   .rejilla { gap: 14px; }

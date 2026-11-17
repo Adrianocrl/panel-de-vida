@@ -12,6 +12,7 @@ const ARCHIVOS = [
   "js/almacen.js",
   "js/graficos.js",
   "js/jarvis.js",
+  "js/ganar.js",
   "js/app.js",
   "iconos/icono-192.png",
   "iconos/icono-512.png",

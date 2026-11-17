@@ -595,6 +595,7 @@
     pintarLateral(); pintarCabecera(); pintarAgenda(); pintarTres(); pintarNumeros(); pintarHabitos();
     pintarObjetivos(); pintarDinero(); pintarDatos(); pintarSueno(); pintarAnimo(); pintarLibro(); pintarDiario(); pintarEstante();
     if (PV.jarvis) PV.jarvis.pintar();
+    if (PV.ganar) PV.ganar.pintar();
   }
 
   // Lo que Jarvis necesita para leer tus datos (js/jarvis.js).
@@ -602,6 +603,14 @@
     datos: () => D, hoy: () => hoy, kHoy: () => kHoy, esc,
     habitoHecho, racha, tuDia, resumenDinero, citasHoy, valorObjetivo, debidoObjetivo,
     entrenoDe, libroActual, ahoraMin, aMin, lunesDe, ingresosDelMes, nomFuente, reservaFijos,
+  };
+  // Para otras tarjetas (js/ganar.js): volver a pintar todo, y abrir "+ Ingreso" ya rellenado.
+  PV.repintar = () => pintar();
+  PV.abrirIngreso = (concepto) => {
+    ui.formIngreso = true; ui.formGasto = false; pintarDinero();
+    const c = $('#dinero [name="concepto"]'); if (c) c.value = concepto || "";
+    $("#dinero").scrollIntoView({ behavior: "smooth", block: "start" });
+    const i = $('#dinero [name="importe"]'); if (i) setTimeout(() => i.focus({ preventScroll: true }), 400);
   };
   function primeraVez() {
     document.querySelectorAll(".tarjeta").forEach((t, i) => (t.style.animationDelay = `${Math.min(i, 12) * 45}ms`));

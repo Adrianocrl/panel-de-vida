@@ -176,6 +176,14 @@
       items.push(["💵", `Este mes ha ingresado <b>${fmt.dinero(ing.total)}</b>. Su balance es ${bal >= 0 ? `positivo: <b>+${fmt.dinero(bal)}</b>. Bien hecho` : `negativo: <b>−${fmt.dinero(-bal)}</b>. Gasta más de lo que gana`}, ${t}.`]);
     }
 
+    // Plan para ganar dinero hoy
+    if (PV.ganar) {
+      const g = PV.ganar.deHoy();
+      items.push(["💸", g.ganadoHoy >= g.meta
+        ? `Hoy ya ha ganado <b>${fmt.dinero(g.ganadoHoy)}</b>. Objetivo del día cumplido, ${t}.`
+        : `Para ganar ${fmt.dineroCorto(g.meta)} hoy le propongo: <b>${esc(minus(g.idea.titulo))}</b>.${g.ganadoHoy > 0 ? ` Lleva ${fmt.dinero(g.ganadoHoy)}.` : ""}`]);
+    }
+
     // Objetivos
     const atr = objetivosAtrasados(x);
     if (atr.length) {
@@ -334,6 +342,10 @@
     dl(`Presupuesto: ${fmt.dinero(r.presupuesto)}. Gastado: ${fmt.dinero(r.total)}. Libre (contando cobros fijos pendientes): ${fmt.dinero(din.libre)}.`);
     C.dinero.categorias.forEach((cat) => dl(`- ${cat.nombre}: ${fmt.dinero(r.porCat[cat.id] || 0)} de ${fmt.dinero(cat.limite)}`));
     if (C.dinero.fijos.length) dl(`Gastos fijos: ${C.dinero.fijos.map((f) => `${f.concepto}, día ${f.dia}, ${fmt.dinero(f.importe)}`).join("; ")}.`);
+    if (PV.ganar) {
+      const g = PV.ganar.deHoy();
+      dl(`Meta de hoy: ganar ${fmt.dinero(g.meta)} de forma segura usando internet (llevo ${fmt.dinero(g.ganadoHoy)}). La idea del panel para hoy: ${g.idea.titulo}. Ayúdame con ella si te lo pido, y avísame si algo que me propongan parece una estafa.`);
+    }
     const rf = c.reservaFijos();
     if (rf.total > 0) dl(`Para los pagos fijos de los próximos 30 días necesito tener ${fmt.dinero(rf.total)}. ${rf.faltan > 0 ? `Me faltan ${fmt.dinero(rf.faltan)}.` : `Los tengo cubiertos; me quedan ${fmt.dinero(rf.libre)} para gastar sin tocarlos.`}`);
     const ultimos = r.lista.slice().sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 10);
