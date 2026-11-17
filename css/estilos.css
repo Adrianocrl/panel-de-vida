@@ -92,6 +92,9 @@ button { cursor: pointer; }
 .saludo em { color: var(--acento); font-style: italic; }
 .foco { color: var(--tinta-suave); }
 .foco b { color: var(--tinta); font-weight: 600; }
+.aviso-fijos { display: flex; gap: 8px; align-items: flex-start; padding: 8px 12px; border-radius: 12px; font-size: 14px; line-height: 1.4; }
+.aviso-fijos.rojo-f { background: var(--rojo-suave); color: var(--rojo); }
+.aviso-fijos.verde-f { background: var(--verde-suave); color: var(--verde); }
 .aviso-dinero { margin-top: 10px; display: inline-flex; gap: 8px; align-items: center; background: var(--rojo-suave); color: var(--rojo); font-weight: 600; padding: 6px 12px; border-radius: 999px; font-size: 14px; }
 .tu-dia { display: flex; align-items: center; gap: 16px; background: var(--tarjeta); border-radius: var(--radio); padding: 14px 20px 14px 14px; box-shadow: var(--sombra); flex: none; }
 .anillo-num { font-family: var(--f-titulo); font-size: 24px; font-weight: 600; fill: var(--tinta); }

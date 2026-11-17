@@ -114,6 +114,19 @@
   ]);
   const nomFuente = (id) => { const f = FUENTES().find((x) => x.id === id); return f ? `${f.icono} ${f.nombre}` : "➕ Otro"; };
   const objetivoAhorro = () => C.objetivos.find((o) => o.tipo === "dinero");
+
+  // Pagos fijos de los próximos 30 días: lo mínimo que debes tener guardado para pagarlos.
+  function reservaFijos() {
+    const lista = C.dinero.fijos.map((f) => {
+      let d = new Date(hoy.getFullYear(), hoy.getMonth(), f.dia);
+      if (f.dia <= hoy.getDate()) d = new Date(hoy.getFullYear(), hoy.getMonth() + 1, f.dia);
+      return { ...f, d };
+    }).filter((f) => (f.d - hoy) / 864e5 <= 30).sort((a, b) => a.d - b.d);
+    const total = lista.reduce((s, f) => s + f.importe, 0);
+    const r = resumenDinero("este");
+    const tienes = r.presupuesto - r.total;
+    return { lista, total, tienes, faltan: Math.max(0, total - tienes), libre: tienes - total };
+  }
   function ingresosDelMes(cual) {
     const ref = cual === "este" ? hoy : new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
     const lista = D.ingresos.filter((g) => { const d = F.desdeClave(g.fecha); return d.getFullYear() === ref.getFullYear() && d.getMonth() === ref.getMonth(); });
@@ -360,6 +373,18 @@
     }).join("");
 
     // Próximos cobros
+    // Aviso: ¿te llega para los pagos fijos que vienen?
+    let avisoFijos = "";
+    if (!r.mesCompleto) {
+      const rf = reservaFijos();
+      if (rf.total > 0) {
+        const quienes = rf.lista.map((f) => `${esc(f.concepto.replace(/\s*\(.*\)$/, ""))}, ${fmt.fechaCorta(f.d)}`).join(" · ");
+        avisoFijos = rf.faltan > 0
+          ? `<p class="aviso-fijos rojo-f">⚠️ <span>Necesitas <b>${fmt.dinero(rf.total)}</b> para tus pagos fijos (${quienes}). Te quedan ${fmt.dinero(Math.max(0, rf.tienes))}: <b>te faltan ${fmt.dinero(rf.faltan)}</b>.</span></p>`
+          : `<p class="aviso-fijos verde-f">✅ <span>Tienes cubiertos tus pagos fijos (<b>${fmt.dinero(rf.total)}</b>: ${quienes}). Puedes gastar <b>${fmt.dinero(rf.libre)}</b> sin tocarlos.</span></p>`;
+      }
+    }
+
     const prox = C.dinero.fijos.map((f) => {
       let d = new Date(hoy.getFullYear(), hoy.getMonth(), f.dia);
       if (f.dia <= hoy.getDate()) d = new Date(hoy.getFullYear(), hoy.getMonth() + 1, f.dia);
@@ -397,6 +422,7 @@
           <p class="gastado ${pasado ? "rojo" : ""}">${fmt.dineroCorto(r.total)} <small>de ${fmt.dineroCorto(r.presupuesto)}</small></p>
           ${r.extra > 0 ? `<p class="suave" style="font-size:13px;margin-top:-4px">Presupuesto ${fmt.dinero(r.presupuestoBase)} <b class="verde">+ ${fmt.dinero(r.extra)}</b> de ingresos</p>` : ""}
           <p>${linea}</p>
+          ${avisoFijos}
           <div>${pastPrev}</div>
           <div class="balance">
             <div><small>Ingresos</small><b class="verde">+${fmt.dinero(ing.total)}</b></div>
@@ -575,7 +601,7 @@
   PV.calc = {
     datos: () => D, hoy: () => hoy, kHoy: () => kHoy, esc,
     habitoHecho, racha, tuDia, resumenDinero, citasHoy, valorObjetivo, debidoObjetivo,
-    entrenoDe, libroActual, ahoraMin, aMin, lunesDe, ingresosDelMes, nomFuente,
+    entrenoDe, libroActual, ahoraMin, aMin, lunesDe, ingresosDelMes, nomFuente, reservaFijos,
   };
   function primeraVez() {
     document.querySelectorAll(".tarjeta").forEach((t, i) => (t.style.animationDelay = `${Math.min(i, 12) * 45}ms`));

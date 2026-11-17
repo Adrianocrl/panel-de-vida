@@ -165,7 +165,10 @@
     if (din.r.total > din.r.presupuesto) items.push(["💸", `Se ha pasado del presupuesto: lleva <b>${fmt.dinero(din.r.total)}</b> de ${fmt.dinero(din.r.presupuesto)}. Ni un sol más este mes.`]);
     else {
       for (const p of din.pasadas) items.push(["💸", `Se ha pasado en <b>${esc(minus(p.cat.nombre))}</b>: ${fmt.dinero(p.g)} de ${fmt.dinero(p.cat.limite)}. Modere ese gasto.`]);
-      items.push(["💰", `Le quedan <b>${fmt.dinero(Math.max(0, din.libre))}</b> libres este mes${din.fijosPend ? ", contando los cobros fijos que vienen" : ""}.`]);
+      const rf = c.reservaFijos();
+      if (rf.total > 0 && rf.faltan > 0) items.push(["⚠️", `Necesita <b>${fmt.dinero(rf.total)}</b> para sus pagos fijos y le quedan ${fmt.dinero(Math.max(0, rf.tienes))}: <b>le faltan ${fmt.dinero(rf.faltan)}</b>. No gaste un sol más hasta cubrirlos.`]);
+      else if (rf.total > 0) items.push(["💰", `Le quedan <b>${fmt.dinero(rf.libre)}</b> libres este mes, ya apartados los ${fmt.dinero(rf.total)} de sus pagos fijos.`]);
+      else items.push(["💰", `Le quedan <b>${fmt.dinero(Math.max(0, din.libre))}</b> libres este mes.`]);
     }
     const ing = c.ingresosDelMes("este");
     if (ing.total > 0) {
@@ -331,6 +334,8 @@
     dl(`Presupuesto: ${fmt.dinero(r.presupuesto)}. Gastado: ${fmt.dinero(r.total)}. Libre (contando cobros fijos pendientes): ${fmt.dinero(din.libre)}.`);
     C.dinero.categorias.forEach((cat) => dl(`- ${cat.nombre}: ${fmt.dinero(r.porCat[cat.id] || 0)} de ${fmt.dinero(cat.limite)}`));
     if (C.dinero.fijos.length) dl(`Gastos fijos: ${C.dinero.fijos.map((f) => `${f.concepto}, día ${f.dia}, ${fmt.dinero(f.importe)}`).join("; ")}.`);
+    const rf = c.reservaFijos();
+    if (rf.total > 0) dl(`Para los pagos fijos de los próximos 30 días necesito tener ${fmt.dinero(rf.total)}. ${rf.faltan > 0 ? `Me faltan ${fmt.dinero(rf.faltan)}.` : `Los tengo cubiertos; me quedan ${fmt.dinero(rf.libre)} para gastar sin tocarlos.`}`);
     const ultimos = r.lista.slice().sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 10);
     if (ultimos.length) { dl("Últimos gastos:"); ultimos.forEach((g) => dl(`- ${g.fecha}: ${g.concepto}, ${fmt.dinero(g.importe)}`)); }
     const ing = c.ingresosDelMes("este");
