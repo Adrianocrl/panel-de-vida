@@ -334,7 +334,7 @@
     const ultimos = r.lista.slice().sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 10);
     if (ultimos.length) { dl("Últimos gastos:"); ultimos.forEach((g) => dl(`- ${g.fecha}: ${g.concepto}, ${fmt.dinero(g.importe)}`)); }
     const ing = c.ingresosDelMes("este");
-    dl(`Ingresos del mes: ${fmt.dinero(ing.total)}. Balance (ingresos menos gastos): ${fmt.dinero(ing.total - r.total)}. Los ingresos no aumentan mi presupuesto.`);
+    dl(`Ingresos del mes: ${fmt.dinero(ing.total)}. Balance (ingresos menos gastos): ${fmt.dinero(ing.total - r.total)}. Lo que ingreso (salvo lo que guardo en el ahorro) se suma a mi presupuesto del mes: ${fmt.dinero(r.presupuestoBase)} + ${fmt.dinero(r.extra)} = ${fmt.dinero(r.presupuesto)}.`);
     ing.lista.slice().sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 10)
       .forEach((g) => dl(`- ${g.fecha}: ${g.concepto} (${c.nomFuente(g.fuente).replace(/^\S+\s/, "")}), +${fmt.dinero(g.importe)}${g.alAhorro ? ", guardado en mi ahorro" : ""}`));
     dl("");

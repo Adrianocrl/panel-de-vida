@@ -101,7 +101,9 @@
     const prevision = mesCompleto ? total : total + (variable / hoyDia) * (diasMes - hoyDia) + fijosPend;
     const porCat = {};
     lista.forEach((g) => (porCat[g.cat] = (porCat[g.cat] || 0) + g.importe));
-    return { anio, mes, diasMes, hoyDia, lista, total, acumulado, prevision, porCat, mesCompleto, presupuesto: C.dinero.presupuesto, quedanDias: diasMes - hoyDia + 1 };
+    // Lo que ganas ese mes se suma a lo que puedes gastar (menos lo que guardaste en el ahorro).
+    const extra = ingresosDelMes(cual).lista.filter((g) => !g.alAhorro).reduce((s, g) => s + g.importe, 0);
+    return { anio, mes, diasMes, hoyDia, lista, total, acumulado, prevision, porCat, mesCompleto, presupuesto: C.dinero.presupuesto + extra, presupuestoBase: C.dinero.presupuesto, extra, quedanDias: diasMes - hoyDia + 1 };
   }
 
   // Ingresos: de dónde viene el dinero. Tu lista va en tu configuración (dinero.fuentes); si no, esta.
@@ -393,6 +395,7 @@
       <div class="dinero-top">
         <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
           <p class="gastado ${pasado ? "rojo" : ""}">${fmt.dineroCorto(r.total)} <small>de ${fmt.dineroCorto(r.presupuesto)}</small></p>
+          ${r.extra > 0 ? `<p class="suave" style="font-size:13px;margin-top:-4px">Presupuesto ${fmt.dinero(r.presupuestoBase)} <b class="verde">+ ${fmt.dinero(r.extra)}</b> de ingresos</p>` : ""}
           <p>${linea}</p>
           <div>${pastPrev}</div>
           <div class="balance">
