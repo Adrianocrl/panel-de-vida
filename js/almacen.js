@@ -29,6 +29,13 @@
 
   function guardar() {
     try { localStorage.setItem(LLAVE, JSON.stringify(mios)); } catch (e) { /* sin almacenamiento: el panel sigue funcionando */ }
+    espejo();
+  }
+
+  // Copia para los avisos: sw.js (con la app cerrada) la lee dentro del celular. Nunca sale de él.
+  function espejo() {
+    if (PV.modoEjemplo || !PV.idb || typeof indexedDB === "undefined") return;
+    PV.idb.guardar({ config: PV.config, datos: mios, avisos: prefs.avisos || null, guardado: new Date().toISOString() }).catch(() => {});
   }
 
   // Junta los datos de ejemplo de hoy con lo tuyo.
@@ -56,13 +63,16 @@
     };
   }
 
+  espejo();
+
   PV.almacen = {
+    espejo,
     get mios() { return mios; },
     datos: combinar,
     guardar,
     pref(nombre, valor) {
       if (valor === undefined) return prefs[nombre];
-      prefs[nombre] = valor; guardarPrefs();
+      prefs[nombre] = valor; guardarPrefs(); espejo();
     },
     cambiar(fn) { fn(mios); guardar(); },
     restablecer() {

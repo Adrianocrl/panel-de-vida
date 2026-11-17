@@ -596,6 +596,7 @@
     pintarObjetivos(); pintarDinero(); pintarDatos(); pintarSueno(); pintarAnimo(); pintarLibro(); pintarDiario(); pintarEstante();
     if (PV.jarvis) PV.jarvis.pintar();
     if (PV.ganar) PV.ganar.pintar();
+    if (PV.avisosUI) PV.avisosUI.pintar();
   }
 
   // Lo que Jarvis necesita para leer tus datos (js/jarvis.js).

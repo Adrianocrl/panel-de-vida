@@ -403,3 +403,19 @@ button { cursor: pointer; }
   .hab-cab, .habito { gap: 4px; }
 }
 .t-dinero > .t-cab { flex-wrap: wrap; }
+
+/* ===== Notificaciones de Jarvis ===== */
+.av-activar { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: var(--ambar-suave); border-radius: 14px; padding: 12px 14px; font-size: 14.5px; }
+.av-activar p { flex: 1 1 260px; }
+.av-acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+.av-mensaje { font-size: 14px; background: var(--fondo); border-radius: 12px; padding: 8px 12px; }
+.av-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.av-lista li { display: grid; grid-template-columns: 28px minmax(0, 1fr) 110px; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--linea); }
+.av-lista li:first-child { border-top: 0; }
+.av-on input { width: 20px; height: 20px; accent-color: var(--verde); }
+.av-texto b { display: block; font-size: 14.5px; font-weight: 600; }
+.av-texto small { display: block; font-size: 12.5px; line-height: 1.4; }
+.av-hora { text-align: center; }
+.av-pie { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.av-pie small { flex: 1 1 260px; font-size: 12.5px; }
+@media (max-width: 640px) { .av-lista li { grid-template-columns: 28px minmax(0, 1fr) 96px; } }

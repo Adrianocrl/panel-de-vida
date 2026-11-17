@@ -5,7 +5,8 @@
    El código solo lleva piezas GENERALES (se publica). Lo tuyo (qué sabes hacer, tus herramientas,
    tus servicios propios) va en tu configuración: privado/mi-configuracion.json → ganar. */
 (function () {
-  const PV = (window.PV = window.PV || {});
+  const raiz = typeof window !== "undefined" ? window : self;
+  const PV = (raiz.PV = raiz.PV || {});
   const $ = (s) => document.querySelector(s);
 
   // ---------- Para quién (negocios de barrio) ----------
@@ -246,7 +247,7 @@
     const b = document.querySelector('[data-gn="copiar"]'); if (b) b.textContent = ok ? "✓ Copiado" : "Selecciónalo y cópialo a mano";
   }
 
-  document.addEventListener("click", (e) => {
+  if (typeof document !== "undefined") document.addEventListener("click", (e) => {
     const b = e.target.closest("[data-gn]");
     if (!b || !PV.almacen) return;
     const k = PV.calc.kHoy(), acc = b.dataset.gn;
@@ -257,7 +258,7 @@
     else if (acc === "claude") { abiertoClaude = !abiertoClaude; pintar(); }
     else if (acc === "copiar") copiar();
   });
-  document.addEventListener("change", (e) => {
+  if (typeof document !== "undefined") document.addEventListener("change", (e) => {
     const t = e.target;
     if (t.dataset.gn !== "paso" || !PV.almacen) return;
     const k = PV.calc.kHoy(), i = Number(t.dataset.i);
