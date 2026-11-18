@@ -7,7 +7,7 @@
   const LLAVE = PV.modoEjemplo ? "panelDeVida.ejemplo" : "panelDeVida.v1";
   const LLAVE_PREFS = "panelDeVida.prefs";
 
-  const vacio = () => ({ dias: {}, marcas: {}, animo: {}, gastos: [], ingresos: [], ganar: {}, borrados: [], citas: {}, diario: [], tres: {}, objetivos: {}, libroPagina: null, libro: null, inicio: null });
+  const vacio = () => ({ dias: {}, marcas: {}, animo: {}, gastos: [], ingresos: [], ganar: {}, salud: {}, borrados: [], citas: {}, diario: [], tres: {}, objetivos: {}, libroPagina: null, libro: null, inicio: null });
 
   let prefs = {};
   try { prefs = JSON.parse(localStorage.getItem(LLAVE_PREFS) || "{}") || {}; } catch (e) {}
@@ -59,6 +59,7 @@
       libroPagina: mios.libroPagina ?? base.libroPagina,
       libro: mios.libro,
       ganar: mios.ganar || {},
+      salud: mios.salud || {},
       inicio: PV.modoEjemplo ? "2000-01-01" : mios.inicio,
     };
   }

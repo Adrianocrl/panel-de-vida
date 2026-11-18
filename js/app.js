@@ -61,15 +61,22 @@
     }
     return !!(D.marcas[h.id] && D.marcas[h.id][k]);
   }
+  // Días marcados como "mal de salud": no cuentan como fallo (las rachas no se rompen).
+  const enfermo = (k) => !!(D.salud && D.salud[k]);
   function racha(h) {
-    let n = 0, d = new Date(hoy);
+    let n = 0, d = new Date(hoy), pasos = 0;
     if (!habitoHecho(h, kHoy)) d = F.sumarDias(d, -1);
-    while (habitoHecho(h, F.clave(d)) && n < 400) { n++; d = F.sumarDias(d, -1); }
+    while (pasos++ < 400) {
+      const k = F.clave(d);
+      if (habitoHecho(h, k)) n++;
+      else if (!enfermo(k)) break;
+      d = F.sumarDias(d, -1);
+    }
     return n;
   }
   function rachaMasLarga(h) {
     let mejor = 0, act = 0;
-    for (let i = 160; i >= 0; i--) { if (habitoHecho(h, F.clave(F.sumarDias(hoy, -i)))) { act++; mejor = Math.max(mejor, act); } else act = 0; }
+    for (let i = 160; i >= 0; i--) { const k = F.clave(F.sumarDias(hoy, -i)); if (habitoHecho(h, k)) { act++; mejor = Math.max(mejor, act); } else if (!enfermo(k)) act = 0; }
     return Math.max(mejor, h.record || 0);
   }
   function tuDia() {
@@ -77,7 +84,7 @@
     let total = 3, hechas = tres.filter((t) => t.hecho).length;
     for (const h of C.habitos) { total++; if (habitoHecho(h, kHoy)) hechas++; }
     if (C.habitos.every((h) => h.auto !== "agua")) { total++; if (diaHoy().agua >= C.objetivoAgua) hechas++; }
-    if (entrenoDe(hoy)) { total++; if (diaHoy().entreno) hechas++; }
+    if (entrenoDe(hoy) && !enfermo(kHoy)) { total++; if (diaHoy().entreno) hechas++; }
     return { hechas, total };
   }
 
@@ -154,8 +161,9 @@
     const nombre = A.pref("nombre") || C.nombre;
     const foco = EJ ? C.foco : (A.pref("foco") || "");
     const { hechas, total } = tuDia();
-    const pct = total ? hechas / total : 0;
-    const frase = hechas === 0 ? "Empieza por una" : pct >= 1 ? "Día redondo" : pct >= 0.7 ? "Casi lo tienes" : pct >= 0.35 ? "Vas bien" : "Buen comienzo";
+    const malo = enfermo(kHoy);
+    const pct = malo ? 0 : total ? hechas / total : 0;
+    const frase = malo ? "Día de recuperación" : hechas === 0 ? "Empieza por una" : pct >= 1 ? "Día redondo" : pct >= 0.7 ? "Casi lo tienes" : pct >= 0.35 ? "Vas bien" : "Buen comienzo";
     const r = resumenDinero("este");
     const pasado = r.total > r.presupuesto;
     $("#hoy").innerHTML = `<div>
@@ -163,10 +171,14 @@
         <h1 class="saludo">${saludo}, <em>${esc(nombre)}</em></h1>
         ${ui.editFoco ? `<p class="foco" style="display:flex;gap:8px;align-items:center">Foco de la semana: <input class="campo" id="input-foco" style="max-width:420px" value="${esc(foco)}" placeholder="Lo más importante de esta semana" maxlength="90"></p>`
           : `<p class="foco">Foco de la semana: <button type="button" data-acc="editar-foco" style="border:0;background:none;padding:0;cursor:pointer" title="Cambiar el foco">${foco ? `<b>${esc(foco)}</b> <span class="suave">✎</span>` : `<span class="suave" style="text-decoration:underline">escríbelo aquí ✎</span>`}</button></p>`}
+        <p><button type="button" class="btn-salud ${malo ? "on" : ""}" data-acc="salud" aria-pressed="${malo}">${malo ? "🤒 Día de salud activado · toca si ya estás mejor" : "🤒 Hoy estoy mal de salud"}</button></p>
         ${pasado ? `<p class="aviso-dinero">⚠️ Te pasaste ${fmt.dineroCorto(r.total - r.presupuesto)} del presupuesto y quedan ${r.quedanDias} días</p>` : ""}
       </div>
-      <div class="tu-dia">${G.anillo(pct, 96)}<div><p class="suave" style="font-size:13px;font-weight:600">TU DÍA</p><h3>${frase}</h3><p class="suave" style="font-size:14px">${hechas} de ${total} cosas hechas</p></div></div>`;
-    $("#banner").innerHTML = EJ
+      <div class="tu-dia">${G.anillo(pct, 96)}<div><p class="suave" style="font-size:13px;font-weight:600">TU DÍA</p><h3>${frase}</h3><p class="suave" style="font-size:14px">${malo ? "Hoy solo toca descansar. Tus rachas están a salvo." : `${hechas} de ${total} cosas hechas`}</p></div></div>`;
+    $("#banner").classList.toggle("salud", malo && !EJ);
+    $("#banner").innerHTML = malo && !EJ
+      ? `<span aria-hidden="true">🤒</span><span><b>Hoy es día de recuperación.</b> Descansa, toma agua y no te preocupes por nada: los hábitos y el entreno de hoy no cuentan como fallo. Si no mejoras, cuéntaselo a alguien de tu casa o ve al médico.</span>`
+      : EJ
       ? `<span aria-hidden="true">🧪</span><span><b>Estás viendo datos de ejemplo.</b> No se mezclan con los tuyos. <button type="button" data-acc="modo" style="border:0;background:none;padding:0;color:var(--acento);font-weight:600;text-decoration:underline">Volver a mis datos</button></span>`
       : PV.configPropia
         ? `<span aria-hidden="true">🌱</span><span><b>Tu panel está listo.</b> Tiene tu agenda, tus hábitos, tus objetivos y tu presupuesto. Se llena con lo que marques cada día.</span>`
@@ -245,7 +257,7 @@
           <span class="val">${d.agua}</span><button type="button" class="btn-mini" data-acc="agua" data-d="1" aria-label="Sumar un vaso">+</button></div>
         <div class="puntos" aria-hidden="true">${Array.from({ length: C.objetivoAgua }, (_, i) => `<i class="${i < d.agua ? "si" : ""}"></i>`).join("")}</div></div>
       <div class="numero"><span class="et">Entreno de hoy</span>
-        <div class="entreno ${d.entreno ? "hecho" : ""}"><b>${plan ? esc(plan) : (EJ || hayPlan ? "Descanso" : "Sin plan de entreno")}</b>
+        <div class="entreno ${d.entreno ? "hecho" : ""}"><b>${enfermo(kHoy) && !d.entreno ? "Hoy toca descansar 🤒" : plan ? esc(plan) : (EJ || hayPlan ? "Descanso" : "Sin plan de entreno")}</b>
           <button type="button" class="btn ${d.entreno ? "" : plan ? "lleno" : ""}" data-acc="entreno">${d.entreno ? "✓ Hecho" : plan ? "Marcar hecho" : "Entrené hoy"}</button></div></div>
     </div>`;
   }
@@ -257,11 +269,11 @@
     const hechosHoy = C.habitos.filter((h) => habitoHecho(h, kHoy)).length;
     const filas = C.habitos.map((h) => {
       const casillas = semana.map((d) => {
-        const k = F.clave(d), si = habitoHecho(h, k), esHoy = k === kHoy, futuro = d > hoy;
+        const k = F.clave(d), si = habitoHecho(h, k), esHoy = k === kHoy, futuro = d > hoy, sal = !si && enfermo(k);
         const estilo = si ? `style="background:var(--${h.color})"` : "";
         const dis = !esHoy || h.auto ? "disabled" : "";
         const tit = h.auto && esHoy ? "Se marca solo al llegar al objetivo" : esHoy ? (si ? "Desmarcar hoy" : "Marcar hoy") : "";
-        return `<button type="button" class="casilla ${si ? "si" : ""} ${esHoy ? "hoy" : ""} ${futuro ? "futuro" : ""}" ${estilo} ${dis} data-acc="habito" data-id="${h.id}" aria-pressed="${si}" aria-label="${esc(h.nombre)}, ${fmt.diaSemana(d)}" ${tit ? `title="${tit}"` : ""}>${si ? "✓" : ""}</button>`;
+        return `<button type="button" class="casilla ${si ? "si" : ""} ${esHoy ? "hoy" : ""} ${futuro ? "futuro" : ""}" ${estilo} ${dis} data-acc="habito" data-id="${h.id}" aria-pressed="${si}" aria-label="${esc(h.nombre)}, ${fmt.diaSemana(d)}${sal ? ", día de salud" : ""}" ${sal ? `title="Día de salud: no cuenta como fallo"` : tit ? `title="${tit}"` : ""}>${si ? "✓" : sal ? "🤒" : ""}</button>`;
       }).join("");
       const r = racha(h);
       return `<div class="habito"><div class="hab-nom"><span class="hab-ico" style="background:var(--${h.color}-suave)">${h.icono}</span>
@@ -284,7 +296,7 @@
     // Cifras del mes
     let posibles = 0, cumplidos = 0, perfectos = 0;
     for (let d = new Date(hoy.getFullYear(), hoy.getMonth(), 1); d <= hoy; d = F.sumarDias(d, 1)) {
-      if (!desdeInicio(d)) continue;
+      if (!desdeInicio(d) || (enfermo(F.clave(d)) && F.clave(d) !== kHoy) || (enfermo(kHoy) && F.clave(d) === kHoy)) continue;
       const k = F.clave(d), n = C.habitos.filter((h) => habitoHecho(h, k)).length;
       posibles += C.habitos.length; cumplidos += n; if (n === C.habitos.length) perfectos++;
     }
@@ -494,6 +506,7 @@
       let cls = "", txt = p ? p.split(" ")[0] : (EJ ? "Descanso" : "—");
       if (x.entreno) { cls = "hecho"; txt = "✓ " + (p ? p.split(" ")[0] : "Extra"); }
       else if (p && k === kHoy) cls = "toca";
+      else if (p && enfermo(k)) { cls = "suave"; txt = "🤒 Salud"; }
       else if (p && d < hoy) { cls = "falta"; txt = "✕ " + p.split(" ")[0]; }
       else if (!p) cls = "suave";
       return `<div class="${cls}" title="${esc(p || txt)}"><b>${LETRAS[d.getDay()]}</b>${esc(txt)}</div>`;
@@ -603,7 +616,7 @@
   PV.calc = {
     datos: () => D, hoy: () => hoy, kHoy: () => kHoy, esc,
     habitoHecho, racha, tuDia, resumenDinero, citasHoy, valorObjetivo, debidoObjetivo,
-    entrenoDe, libroActual, ahoraMin, aMin, lunesDe, ingresosDelMes, nomFuente, reservaFijos,
+    entrenoDe, libroActual, ahoraMin, aMin, lunesDe, ingresosDelMes, nomFuente, reservaFijos, enfermo,
   };
   // Para otras tarjetas (js/ganar.js): volver a pintar todo, y abrir "+ Ingreso" ya rellenado.
   PV.repintar = () => pintar();
@@ -634,6 +647,11 @@
       }
       case "editar-nombre": ui.editNombre = true; pintarLateral(); return;
       case "editar-foco": ui.editFoco = true; pintarCabecera(); return;
+      case "salud": {
+        const ya = enfermo(kHoy);
+        A.cambiar((m) => { m.salud = m.salud || {}; if (ya) delete m.salud[kHoy]; else m.salud[kHoy] = true; });
+        avisar(ya ? "¡Qué bien que estés mejor!" : "Que te mejores. Hoy no cuenta como fallo."); break;
+      }
       case "modo": A.pref("ejemplo", !EJ); location.reload(); return;
       case "nueva-cita": ui.formCita = "nueva"; pintarAgenda(); $('#t-agenda [name="hora"]').focus(); return;
       case "editar-cita": ui.formCita = id; pintarAgenda(); $('#t-agenda [name="titulo"]').focus(); return;

@@ -62,8 +62,12 @@
     return !!(D.marcas[h.id] && D.marcas[h.id][k]);
   }
   function rachaHastaAyer(C, D, h, hoy) {
-    let n = 0, d = sumar(hoy, -1);
-    while (n < 400 && clave(d) >= (D.inicio || "0") && hecho(C, D, h, clave(d))) { n++; d = sumar(d, -1); }
+    let n = 0, d = sumar(hoy, -1), pasos = 0;
+    while (pasos++ < 400 && clave(d) >= (D.inicio || "0")) {
+      if (hecho(C, D, h, clave(d))) n++;
+      else if (!(D.salud && D.salud[clave(d)])) break;
+      d = sumar(d, -1);
+    }
     return n;
   }
   function agenda(C, D, hoy) {
@@ -120,6 +124,18 @@
     const entrenado = !!(D.dias[k] || {}).entreno;
     const din = dinero(C, D, hoy);
     const meta = (C.ganar && C.ganar.meta) || 10;
+
+    // Día de salud: solo ánimo y descanso.
+    if (D.salud && D.salud[k]) {
+      const frases = {
+        parte: [`${saludo}, ${t}`, "Hoy es día de recuperación: descanse, beba agua y no se preocupe por los hábitos. Sus rachas están a salvo."],
+        ganar: ["Hoy, a descansar", `${T}, el plan para ganar dinero vuelve mañana. Lo importante hoy es que se recupere.`],
+        entreno: ["Sin entreno hoy", `Hoy no se entrena, ${t}. El cuerpo se recupera descansando.`],
+        falta: ["¿Cómo se encuentra?", `${T}, hoy no le falta nada: solo descansar. Si no mejora, avise a alguien de su casa o vaya al médico.`],
+        diario: [`Buenas noches, ${t}`, "Que descanse y mañana amanezca mejor. Si quiere, apunte en el diario cómo se sintió."],
+      }[tipo] || ["Que se mejore", `Descanse, ${t}.`];
+      return { titulo: `${firma} · ${frases[0]}`, cuerpo: frases[1] };
+    }
 
     if (tipo === "parte") {
       const ag = agenda(C, D, hoy).filter((c) => aMin(c.hora) >= h * 60).slice(0, 3).map((c) => `${c.hora} ${minus(c.titulo)}`);

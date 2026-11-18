@@ -419,3 +419,10 @@ button { cursor: pointer; }
 .av-pie { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .av-pie small { flex: 1 1 260px; font-size: 12.5px; }
 @media (max-width: 640px) { .av-lista li { grid-template-columns: 28px minmax(0, 1fr) 96px; } }
+
+/* ===== Día de salud ===== */
+.btn-salud { border: 1px dashed var(--linea); background: transparent; color: var(--tinta-suave); border-radius: 999px; padding: 5px 12px; font-size: 13.5px; font-weight: 600; margin-top: 8px; cursor: pointer; }
+.btn-salud:hover { border-color: var(--azul); color: var(--azul); }
+.btn-salud.on { border-style: solid; border-color: var(--azul); background: var(--azul-suave); color: var(--azul); }
+.banner-ejemplo.salud { background: var(--azul-suave); }
+.gn-pausa { font-size: 14.5px; background: var(--azul-suave); border-radius: 14px; padding: 12px 14px; }

@@ -207,6 +207,11 @@
     const pct = Math.min(100, Math.round((ganadoHoy / m) * 100));
     const logrado = ganadoHoy >= m;
     const cobro = cfg().cobro;
+    if (c.enfermo && c.enfermo(c.kHoy())) {
+      caja.innerHTML = `<div class="t-cab"><h2 class="t-tit"><span aria-hidden="true">💸</span>Tu plan de hoy</h2><span class="pastilla gris">En pausa</span></div>
+        <p class="gn-pausa">🤒 Hoy toca recuperarse: el plan para ganar dinero vuelve mañana. Si igual te llega algún ingreso, apúntalo con <b>+ Ingreso</b>.</p>`;
+      return;
+    }
     caja.innerHTML = `
       <div class="t-cab"><h2 class="t-tit"><span aria-hidden="true">💸</span>Tu plan de hoy: ${fmt.dineroCorto(m)}</h2>
         <span class="pastilla ${logrado ? "verde" : "gris"}">${logrado ? "¡Conseguido! " : ""}Hoy: ${fmt.dinero(ganadoHoy)} de ${fmt.dineroCorto(m)}</span></div>

@@ -94,7 +94,7 @@
     for (let i = 1; i <= 21; i++) {
       const d = F.sumarDias(hoy, -i), k = F.clave(d);
       if (k < D.inicio) break;
-      if (!c.entrenoDe(d)) continue;
+      if (!c.entrenoDe(d) || c.enfermo(k)) continue;
       if ((D.dias[k] || {}).entreno) break;
       n++;
     }
@@ -143,6 +143,15 @@
     if (!ag) ag = citas.length ? "Su agenda de hoy está despachada." : "Hoy no tiene nada en la agenda.";
     items.push(["🗓️", ag]);
 
+    // Día de salud: nada de pendientes ni regaños.
+    if (c.enfermo(kHoy)) {
+      items.push(["🤒", `Hoy solo toca recuperarse, ${t}. Beba agua, descanse y no se preocupe por nada: sus rachas están a salvo y el entreno puede esperar.`]);
+      items.push(["🩺", "Si no mejora o se siente peor, avise a alguien de su casa o vaya al médico."]);
+      const din = dineroLibre(x);
+      items.push(["💰", `Le quedan <b>${fmt.dinero(Math.max(0, din.libre))}</b> libres este mes. Hoy no hace falta pensar en ganar dinero.`]);
+      return { saludo, items };
+    }
+
     // Pendientes de hoy
     const pend = pendientesHoy(x);
     const tres = (D.tres[kHoy] || []).filter((z) => z.texto && !z.hecho).length;
@@ -155,7 +164,7 @@
     if (fall >= 2) items.push(["⚠️", `Lleva <b>${fall} entrenos seguidos sin hacer</b>. Esta noche no admite excusas.`]);
     else if (fall === 1) items.push(["⚠️", `El último entreno que le tocaba no lo hizo. Hoy no se repite.`]);
     const ayer = F.sumarDias(hoy, -1), kAyer = F.clave(ayer);
-    if (kAyer >= D.inicio) {
+    if (kAyer >= D.inicio && !c.enfermo(kAyer)) {
       const sinHacer = C.habitos.filter((hb) => !hb.auto && !c.habitoHecho(hb, kAyer)).map((hb) => minus(hb.nombre));
       if (sinHacer.length) items.push(["❌", `Ayer se le quedó sin hacer: <b>${esc(lista(sinHacer))}</b>.`]);
     }
@@ -310,6 +319,7 @@
     dl(`Empecé a usar el panel el ${F.desdeClave(D.inicio).toLocaleDateString(C.locale, { day: "numeric", month: "long" })}.`);
     dl("");
 
+    if (c.enfermo(kHoy)) { dl("HOY ESTOY MAL DE SALUD: no me presiones con hábitos, entreno ni dinero; ayúdame a descansar y recuperarme, y si te cuento síntomas preocupantes, dime que avise a un adulto o vaya al médico."); dl(""); }
     dl("AGENDA DE HOY");
     const citas = c.citasHoy();
     if (citas.length) citas.forEach((ci) => dl(`- ${ci.hora} a ${hhmm(c.aMin(ci.hora) + Number(ci.dur))}: ${ci.titulo}`));
